@@ -1,6 +1,6 @@
 # FieldtypeSelectFile & InputfieldSelectFile
 
-**Inputfield Select File** in an Inputfield & Fieldtype to select a single file from a folder. If **Path to files** is omitted in the field settings details tab, the Inputfield will list all files from the templates folder.
+**Inputfield Select File** is an Inputfield & Fieldtype to select a single file from a folder. If **Path to files** is omitted in the field settings details tab, the Inputfield will list all files from the templates folder.
 
 ### Settings
 
