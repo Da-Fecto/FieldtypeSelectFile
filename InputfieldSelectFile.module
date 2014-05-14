@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * An Inputfield for handling files in a folder
+ *
+ * ©2013 Martijn Geerts
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2010 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+class InputfieldSelectFile extends InputfieldText {
+
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Inputfield select file',
+            'version' => 90,
+            'summary' => 'Inputfield to select a filename from a folder.',
+            'author' => 'Martijn Geerts',
+            'requires' => 'FieldtypeSelectFile'
+            );
+    }
+
+    public function __construct() {
+        parent::__construct();
+    }
+
+    public function ___render() {
+
+        $path = $this->config->paths->templates . trim(trim($this->folderPath), "/") . "/";
+
+        if(!is_dir($path)) {
+            $this->error($this->_("Path to files is invalid"));
+        } else {
+            $out = "<option value=''></option>";
+            $handle = opendir($path);
+            while (false !== ($entry = readdir($handle))) {
+                if (strpos($entry, '.') !== 0 && is_file($path.$entry)) {
+
+                    if($this->fileExt) {
+                        $exploded = explode('.', $entry);
+                        array_pop($exploded);
+                        $label = implode('.', $exploded);
+                    } else {
+                        $label = $entry;
+                    }
+
+                    $selected = $entry == $this->value ? " selected" : '';
+                    $out .= "<option value='$entry'$selected>$label</option>";
+                }
+            }
+            closedir($handle);
+        }
+
+        return "<select name='$this->name'>$out</select>";
+    }
+
+
+
+    // remove some fields
+    public function ___getConfigInputfields() {
+        $inputfields = parent::___getConfigInputfields();
+
+        $f = $inputfields->get('stripTags');
+        if($f) $inputfields->remove($f);
+
+        $f = $inputfields->get('size');
+        if($f) $inputfields->remove($f);
+
+        $f = $inputfields->get('maxlength');
+        if($f) $inputfields->remove($f);
+
+        $f = $inputfields->get('placeholder');
+        if($f) $inputfields->remove($f);
+
+        $f = $inputfields->get('pattern');
+        if($f) $inputfields->remove($f);
+
+        return $inputfields;
+    }
+}

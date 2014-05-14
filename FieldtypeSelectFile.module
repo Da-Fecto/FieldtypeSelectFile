@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * ProcessWire files in folder Fieldtype
+ *
+ * ©2013 Martijn Geerts
+ *
+ * ProcessWire 2.x
+ * Copyright (C) 2010 by Ryan Cramer
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ *
+ * http://www.processwire.com
+ * http://www.ryancramer.com
+ *
+ */
+
+class FieldtypeSelectFile extends FieldtypeText {
+
+    public static function getModuleInfo() {
+        return array(
+            'title' => 'Fieldtype select file',
+            'version' => 90,
+            'summary' => 'Field that stores a filename from a folder.',
+            'author' => 'Martijn Geerts',
+            'installs' => 'InputfieldSelectFile'
+            );
+    }
+
+    public function init() {
+        parent::init();
+        $this->allowTextFormatters(false);
+    }
+
+    /**
+     * Sanitize value for storage
+     *
+     */
+    public function sanitizeValue(Page $page, Field $field, $value) {
+        $file = $this->config->paths->templates . trim(trim($this->folderPath), "/") . "/" . $value;
+        // not linked
+        if(!is_file($file)) return '';
+        // don't allow directories
+        if(is_dir($file)) return '';
+        return $value;
+    }
+
+    // Sets folderPath to the inputfield
+    public function getInputfield(Page $page, Field $field) {
+        $inputfield = $this->modules->get('InputfieldSelectFile');
+        $inputfield->set('folderPath', $field->folderPath);
+        $inputfield->set('fileExt', $field->fileExt);
+        return $inputfield;
+    }
+
+    // clean it
+    public function ___formatValue(Page $page, Field $field, $value) {
+        return $value;
+    }
+
+    // details
+    public function ___getConfigInputfields(Field $field) {
+        $inputfields = parent::___getConfigInputfields($field);
+
+        $f = $this->modules->get('InputfieldText');
+        $f->attr('name', 'folderPath');
+        $f->label = $this->_("Path to files");
+        $f->attr('value', $field->folderPath);
+        $f->description = 'Relative to the templates folder.';
+        $f->notes = 'If the files are located in /site/templates/scripts/, type: scripts/';
+        $inputfields->add($f);
+
+        $f = $this->modules->get('InputfieldCheckbox');
+        $f->attr('name', 'fileExt');
+        $f->label = $this->_("Hide File Extension");
+        $f->label2 = $this->_("Hide it");
+        $f->description  = $this->_("Don't show the file extension in the select.");
+        $f->attr('autocheck', 1);
+        $f->attr('uncheckedValue', 0);
+        $f->attr('checkedValue', 1);
+        $f->attr('value', $field->fileExt);
+        $inputfields->add($f);
+
+        return $inputfields;
+    }
+}
