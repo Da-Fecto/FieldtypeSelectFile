@@ -18,7 +18,7 @@ class InputfieldSelectFile extends InputfieldText {
     public static function getModuleInfo() {
         return array(
             'title' => 'Inputfield select file',
-            'version' => 90,
+            'version' => 95,
             'summary' => 'Inputfield to select a filename from a folder.',
             'author' => 'Martijn Geerts',
             'requires' => 'FieldtypeSelectFile'

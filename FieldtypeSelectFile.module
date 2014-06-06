@@ -19,7 +19,7 @@ class FieldtypeSelectFile extends FieldtypeText {
     public static function getModuleInfo() {
         return array(
             'title' => 'Fieldtype select file',
-            'version' => 90,
+            'version' => 95,
             'summary' => 'Field that stores a filename from a folder.',
             'author' => 'Martijn Geerts',
             'installs' => 'InputfieldSelectFile'
@@ -36,7 +36,9 @@ class FieldtypeSelectFile extends FieldtypeText {
      *
      */
     public function sanitizeValue(Page $page, Field $field, $value) {
-        $file = $this->config->paths->templates . trim(trim($this->folderPath), "/") . "/" . $value;
+
+        $file = $this->config->paths->templates . ltrim($field->folderPath, '/') . $value;
+
         // not linked
         if(!is_file($file)) return '';
         // don't allow directories
