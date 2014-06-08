@@ -19,7 +19,6 @@ In the examples I called the field **select_file**.
 // let the editor choose a CSS file
 $config->scripts->append($config->urls->templates . "scripts/" . $page->select_file);
 
-
 /**
  * advanced usage example
  *
@@ -28,9 +27,10 @@ $config->scripts->append($config->urls->templates . "scripts/" . $page->select_f
  *
  */
 
-$tpl = new TemplateFile($config->paths->templates . "includes/$page->select_file");
-$tpl->set('current_page', $page);
+$tpl = new TemplateFile($config->paths->templates . "includes/" . $page->select_file);
+$tpl->set('current', $page);
 $markup = $tpl->render();
 
 ```
-[info](/images/selectfile.png)
+
+![info](https://github.com/Da-Fecto/FieldtypeSelectFile/blob/master/images/selectfile.png)
