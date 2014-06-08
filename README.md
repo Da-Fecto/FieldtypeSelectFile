@@ -33,4 +33,4 @@ $markup = $tpl->render();
 
 ```
 
-![info](https://github.com/Da-Fecto/FieldtypeSelectFile/blob/master/images/selectfile.png)
+![info](https://raw.githubusercontent.com/Da-Fecto/FieldtypeSelectFile/master/images/selectfile.png)
