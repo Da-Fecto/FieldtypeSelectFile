@@ -1,12 +1,15 @@
 # FieldtypeSelectFile & InputfieldSelectFile
 
-**Inputfield Select File** is an Inputfield & Fieldtype to select a single file from a folder. If **Path to files** is omitted in the field settings details tab, the Inputfield will list all files from the templates folder.
+**Inputfield Select File** is an Inputfield & Fieldtype to select a single file or folder and store it. If **Path to files** is omitted in the field settings details tab, the Inputfield will list all files and or folders from the templates folder.
 
 ### Settings
 
 The settings for the field are located at the field settings details tab.
 
-
+* Path to files
+* Hide file extensions
+* Hide files
+* Hide folders
 
 ### When to use ?
 
@@ -30,3 +33,4 @@ $tpl->set('current_page', $page);
 $markup = $tpl->render();
 
 ```
+[info](/images/selectfile.png)
