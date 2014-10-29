@@ -19,7 +19,7 @@ class FieldtypeSelectFile extends FieldtypeText {
     public static function getModuleInfo() {
         return array(
             'title' => __('Fieldtype select file'),
-            'version' => 97,
+            'version' => 100,
             'summary' => __('Fieldtype that stores a file or folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',

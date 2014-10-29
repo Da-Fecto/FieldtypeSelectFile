@@ -18,7 +18,7 @@ class InputfieldSelectFile extends InputfieldText {
     public static function getModuleInfo() {
         return array(
             'title' => 'Inputfield select file',
-            'version' => 97,
+            'version' => 100,
             'summary' => __('Inputfield to select a file or a folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
