@@ -19,7 +19,7 @@ class FieldtypeSelectFile extends FieldtypeText {
     public static function getModuleInfo() {
         return array(
             'title' => __('Fieldtype select file'),
-            'version' => 100,
+            'version' => 101,
             'summary' => __('Fieldtype that stores a file or folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
@@ -49,20 +49,32 @@ class FieldtypeSelectFile extends FieldtypeText {
         $inputfield->set('fileExt', $field->fileExt);
         $inputfield->set('hideFiles', $field->hideFiles);
         $inputfield->set('hideFolders', $field->hideFolders);
+        $inputfield->set('sort', $field->sort);
         return $inputfield;
     }
 
     // details
     public function ___getConfigInputfields(Field $field) {
 
+        $error = false;
+        if ($field->folderPath) {
+            $folder = $this->config->paths->templates . ltrim($field->folderPath, '/');
+            if (!is_dir($folder)) {
+                $path = $this->config->urls->templates . ltrim($field->folderPath, '/');
+                $error = sprintf($this->_("Folder %s doesn't exist."), $path);
+            }
+        }
+
         $inputfields = parent::___getConfigInputfields($field);
 
         $f = $this->modules->get('InputfieldText');
         $f->attr('name', 'folderPath');
-        $f->label = $this->_("Path to files");
+        $f->label = $this->_("The folder containing the files so select.");
         $f->attr('value', $field->folderPath);
-        $f->description = 'Relative to the templates folder.';
-        $f->notes = 'If the files are located in /site/templates/scripts/, type: scripts/';
+        $f->description = $this->_("Relative to the templates folder.");
+        $f->notes = $this->_("When the files are located in /site/templates/scripts/, type: scripts/");
+        $f->getErrors(true);
+        if ($error) $f->error($error);
         $inputfields->add($f);
 
         $f = $this->modules->get('InputfieldCheckbox');
@@ -71,6 +83,7 @@ class FieldtypeSelectFile extends FieldtypeText {
         $f->attr('autocheck', 1);
         $f->attr('uncheckedValue', 0);
         $f->attr('checkedValue', 1);
+        $f->columnWidth = 25;
         $f->attr('value', $field->fileExt);
         $inputfields->add($f);
 
@@ -80,6 +93,7 @@ class FieldtypeSelectFile extends FieldtypeText {
         $f->attr('autocheck', 1);
         $f->attr('uncheckedValue', 0);
         $f->attr('checkedValue', 1);
+        $f->columnWidth = 25;
         $f->attr('value', $field->hideFiles);
         $inputfields->add($f);
 
@@ -89,7 +103,18 @@ class FieldtypeSelectFile extends FieldtypeText {
         $f->attr('autocheck', 1);
         $f->attr('uncheckedValue', 0);
         $f->attr('checkedValue', 1);
+        $f->columnWidth = 25;
         $f->attr('value', $field->hideFolders);
+        $inputfields->add($f);
+
+        $f = $this->modules->get('InputfieldCheckbox');
+        $f->attr('name', 'sort');
+        $f->label = $this->_("Natural Sort (Select options)");
+        $f->attr('autocheck', 1);
+        $f->attr('uncheckedValue', 0);
+        $f->attr('checkedValue', 1);
+        $f->columnWidth = 25;
+        $f->attr('value', $field->sort);
         $inputfields->add($f);
 
         return $inputfields;

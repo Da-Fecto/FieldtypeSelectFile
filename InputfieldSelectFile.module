@@ -18,7 +18,7 @@ class InputfieldSelectFile extends InputfieldText {
     public static function getModuleInfo() {
         return array(
             'title' => 'Inputfield select file',
-            'version' => 100,
+            'version' => 101,
             'summary' => __('Inputfield to select a file or a folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
@@ -33,11 +33,12 @@ class InputfieldSelectFile extends InputfieldText {
     public function ___render() {
 
         $folder = $this->config->paths->templates . trim(trim($this->folderPath), '/') . "/";
+        $array = array();
 
         if(!is_dir($folder)) {
             $this->error($this->_("Path to files is invalid"));
         } else {
-            $out = "<option value=''></option>";
+            $array[] = "<option value=''></option>";
             $handle = opendir($folder);
             while (false !== ($entry = readdir($handle))) {
 
@@ -53,13 +54,15 @@ class InputfieldSelectFile extends InputfieldText {
                 }
 
                 $selected = $entry == $this->value ? " selected" : '';
-                $out .= "<option value='$entry'$selected>$label</option>";
+                $array[$label] = "<option value='$entry'$selected>$label</option>";
 
             }
             closedir($handle);
         }
 
-        return "<select name='$this->name'>$out</select>";
+        if ($this->sort) ksort($array, SORT_NATURAL);
+
+        return "<select name='$this->name'>" . implode('', $array) . "</select>";
     }
 
     // remove some fields
