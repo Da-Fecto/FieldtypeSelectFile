@@ -1,9 +1,10 @@
 <?php
 
 /**
- * ProcessWire files in folder Fieldtype
+ * Fieldtype 'select file' stores a file/folder name selected in the associated
+ * Inputfield.
  *
- * ©2014 Martijn Geerts
+ * ©2015 Martijn Geerts
  *
  * ProcessWire 2.x
  * Copyright (C) 2010 by Ryan Cramer
@@ -16,10 +17,17 @@
 
 class FieldtypeSelectFile extends FieldtypeText {
 
+
+
+    /**
+     * Return an array of module information
+     *
+     * @return array
+     */
     public static function getModuleInfo() {
         return array(
             'title' => __('Fieldtype select file'),
-            'version' => 101,
+            'version' => 102,
             'summary' => __('Fieldtype that stores a file or folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
@@ -27,10 +35,43 @@ class FieldtypeSelectFile extends FieldtypeText {
             );
     }
 
+
+
+    /**
+     * This method is called when all system classes are loaded and ready for API usage
+     *
+     */
     public function init() {
         parent::init();
         $this->allowTextFormatters(false);
+        $this->addHookBefore('Page::loaded', $this, 'changePageTemplate');
     }
+
+
+
+    /**
+     * Change the page template to render
+     *
+     */
+    public function changePageTemplate(HookEvent $event) {
+
+        $page = $event->object;
+
+        foreach ($page->fields as $inputfield) {
+            if ($inputfield->type === $this) {
+                $fieldname = $inputfield->name;
+                if($page->$fieldname) {
+                    // if Change Page Template is not set Inputfield config
+                    if (!$inputfield->template) continue;
+                    $path = wire('config')->paths->templates . ltrim($this->folderPath, '/');
+                    $page->template->set('filename', $path . $page->$fieldname);
+                }
+                break;
+            }
+        }
+    }
+
+
 
     /**
      * Sanitize value for storage
@@ -42,7 +83,16 @@ class FieldtypeSelectFile extends FieldtypeText {
         return '';
     }
 
-    // Sets folderPath to the inputfield
+
+
+    /**
+     * Return new instance of the Inputfield associated with this Fieldtype
+     *
+     * @param Page $page
+     * @param Field $field
+     * @return Inputfield
+     *
+     */
     public function getInputfield(Page $page, Field $field) {
         $inputfield = $this->modules->get('InputfieldSelectFile');
         $inputfield->set('folderPath', $field->folderPath);
@@ -50,10 +100,19 @@ class FieldtypeSelectFile extends FieldtypeText {
         $inputfield->set('hideFiles', $field->hideFiles);
         $inputfield->set('hideFolders', $field->hideFolders);
         $inputfield->set('sort', $field->sort);
+        $inputfield->set('template', $field->template);
         return $inputfield;
     }
 
-    // details
+
+
+    /**
+     * Get the inputfield used for configuration of this Fieldtype.
+     *
+     * @param Field $field
+     * @return InputfieldWrapper
+     *
+     */
     public function ___getConfigInputfields(Field $field) {
 
         $error = false;
@@ -69,10 +128,14 @@ class FieldtypeSelectFile extends FieldtypeText {
 
         $f = $this->modules->get('InputfieldText');
         $f->attr('name', 'folderPath');
-        $f->label = $this->_("The folder containing the files so select.");
+        $f->label = $this->_("The folder containing the files and/or folders.");
         $f->attr('value', $field->folderPath);
-        $f->description = $this->_("Relative to the templates folder.");
-        $f->notes = $this->_("When the files are located in /site/templates/scripts/, type: scripts/");
+        $f->description =
+            sprintf($this->_('A relative path relative to the **%s** folder.'), $this->config->urls->templates) .
+            ' ' .
+            sprintf($this->_('Leave blank for the **%s** folder.'), $this->config->urls->templates);
+        $f->notes =
+            $this->_("When the files are located in /site/templates/scripts/, type: scripts/");
         $f->getErrors(true);
         if ($error) $f->error($error);
         $inputfields->add($f);
@@ -115,6 +178,20 @@ class FieldtypeSelectFile extends FieldtypeText {
         $f->attr('checkedValue', 1);
         $f->columnWidth = 25;
         $f->attr('value', $field->sort);
+        $inputfields->add($f);
+
+        $f = $this->modules->get('InputfieldCheckbox');
+        $f->attr('name', 'template');
+        $f->label = $this->_('Change Page Template');
+        $f->label2 = $this->_('Use selected file as template');
+        $f->description =
+            $this->_('Just before the **Page::loaded** event the selected file is set as template file for the page.') .
+            ' ' .
+            $this->_('This setting can only be applied once per a page and folders are exluded from the select inputfield.');
+        $f->attr('autocheck', 1);
+        $f->attr('uncheckedValue', 0);
+        $f->attr('checkedValue', 1);
+        $f->attr('value', $field->template);
         $inputfields->add($f);
 
         return $inputfields;
