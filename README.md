@@ -1,6 +1,6 @@
 # FieldtypeSelectFile & InputfieldSelectFile
 
-**Inputfield Select File** is an Inputfield & Fieldtype to select a single file or folder and stores the name and / or use the selected file as page template.
+**Inputfield Select File** is an Inputfield & Fieldtype to select a single file or folder and stores the name and / or use the selected file as page template. The last option enables the editor to use multiple views for a page, depending on the selected template.
 
 ### Settings
 
