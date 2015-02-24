@@ -10,17 +10,15 @@
 * Hide files
 * Hide folders
 * Natural Sort (Select options)
-    - Sort files and folders in natural ordering (PHP >= 5.4.0)
+    - Sort files and folders in natural ordering
 * Change Page Template
     - Just before the **Page::loaded** event the selected file is set as template file for the page. This setting can only be applied once per a page and folders are exluded from the select inputfield.
 
     Note that a page with no associated template file will render with the selected file.
 
-
 ### When to use ?
 
 Let editors select a file and base your own logic upon this. With the __change page template__ setting you're able to  use the selected file as template file. This could reduce the amount of normal templates needed and let editors choose how the page get rendered. It could be a real good companion with InputfieldSelector there are plenty of use cases for this Inputfield.
-
 
 In the examples I call the field **selected_file**.
 
