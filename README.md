@@ -18,7 +18,7 @@
 
 ### When to use ?
 
-Let editors select a file and base your own logic upon this. With the __change page template__ setting you're able to  use the selected file as template file. This could reduce the amount of normal templates needed and let editors choose how the page get rendered. It could be a real good companion with InputfieldSelector there are plenty of use cases for this Inputfield.
+Let editors select a file and base your own logic upon this. With the __change page template__ setting you're able to  use the selected file as template file. This could reduce the amount of normal templates needed and let editors choose how the page get rendered. This field is real good companion with InputfieldSelector, there are plenty of use cases for this Inputfield.
 
 In the examples I call the field **selected_file**.
 
