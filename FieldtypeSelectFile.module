@@ -27,7 +27,7 @@ class FieldtypeSelectFile extends FieldtypeText {
     public static function getModuleInfo() {
         return array(
             'title' => __('Fieldtype select file'),
-            'version' => 102,
+            'version' => 103,
             'summary' => __('Fieldtype that stores a file or folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
@@ -54,21 +54,22 @@ class FieldtypeSelectFile extends FieldtypeText {
      *
      */
     public function changePageTemplate(HookEvent $event) {
-
+        // Page before loaded
         $page = $event->object;
-
-        foreach ($page->fields as $inputfield) {
-            if ($inputfield->type === $this) {
-                $fieldname = $inputfield->name;
-                if($page->$fieldname) {
-                    // if Change Page Template is not set Inputfield config
-                    if (!$inputfield->template) continue;
-                    $path = wire('config')->paths->templates . ltrim($this->folderPath, '/');
-                    $page->template->set('filename', $path . $page->$fieldname);
-                }
-                break;
-            }
-        }
+        // Inputfield object
+        $inputfield = $page->fields->get('type=FieldtypeSelectFile');
+        // Is not of type FieldtypeSelectFile
+        if ($inputfield === NULL) return;
+        // If change page template is not set in the Inputfield config
+        if (!$inputfield->template) return;
+        $value = trim($page->get($inputfield->name));
+        // If no value return
+        if (!$value) return;
+        $path = $this->config->paths->templates;
+        $folder = ltrim($inputfield->folderPath, '/') . '/';
+        $filename = $path . $folder . $value;
+        if (!is_file($filename)) return;
+        $page->template->set('filename', $filename);
     }
 
 
