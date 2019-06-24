@@ -41,6 +41,7 @@ class InputfieldSelectFile extends InputfieldText {
 
         $array = array();
         $folder = $this->config->paths->templates . trim(trim($this->folderPath), '/') . "/";
+        $phpFileDescription = false;
 
         if(!is_dir($folder)) {
             $this->error($this->_("Path to files is invalid"));
@@ -59,6 +60,14 @@ class InputfieldSelectFile extends InputfieldText {
                     $label = implode('.', $exploded);
                 } else {
                     $label = $entry;
+                }
+                // pull "Description" comment from php files if it exists (inspired by WordPress "Template Name" comment)
+                if( !$this->fileDesc && pathinfo($entry)['extension']=='php' ) {
+                    $phpFileData = implode( '', file( $folder . $entry ) );
+                    if ( preg_match( '|Description:(.*)$|mi', $phpFileData, $desc ) ) {
+                        $phpFileDescription = trim( preg_replace( '/\s*(?:\*\/|\?>).*/', '', $desc[1] ) );
+                        $label .= " ($phpFileDescription)";
+                    }
                 }
 
                 $selected = $entry == $this->value ? " selected" : '';
