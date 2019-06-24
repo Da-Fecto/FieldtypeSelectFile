@@ -1,12 +1,11 @@
 <?php namespace ProcessWire;
-
 /**
  * Inputfield 'select file' provides a HTML select to select a file or a folder
  * from disk. Per Inputfield you can set a folder to list from.
  *
  * ©2015 Martijn Geerts
  *
- * ProcessWire 2.x
+ * ProcessWire 3.x
  * Copyright (C) 2010 by Ryan Cramer
  * Licensed under GNU/GPL v2, see LICENSE.TXT
  *
@@ -16,8 +15,6 @@
  */
 class InputfieldSelectFile extends InputfieldText {
 
-
-
     /**
      * Return an array of module information
      *
@@ -25,7 +22,7 @@ class InputfieldSelectFile extends InputfieldText {
      */
     public static function getModuleInfo() {
         return array(
-            'title' => 'Inputfield select file',
+            'title' => 'Select File',
             'version' => 102,
             'summary' => __('Inputfield to select a file or a folder.'),
             'author' => 'Martijn Geerts',
@@ -33,8 +30,6 @@ class InputfieldSelectFile extends InputfieldText {
             'requires' => 'FieldtypeSelectFile',
             );
     }
-
-
 
     /**
      * Return the completed output of Inputfield select file
