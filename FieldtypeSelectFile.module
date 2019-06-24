@@ -1,5 +1,4 @@
-<?php
-
+<?php namespace ProcessWire;
 /**
  * Fieldtype 'select file' stores a file/folder name selected in the associated
  * Inputfield.
