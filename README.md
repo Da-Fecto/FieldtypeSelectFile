@@ -7,6 +7,8 @@
 * The folder containing the files and/or folders.
     - A relative path relative to the /site/templates/ folder.
 * Hide file extensions
+* Hide PHP File Description
+    - PHP files can have a comment called "Description" at the top of the file which will be displayed in the dropdown if it exists.  Check this option to disable it.
 * Hide files
 * Hide folders
 * Natural Sort (Select options)
