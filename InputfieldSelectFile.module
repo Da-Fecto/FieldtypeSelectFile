@@ -1,12 +1,11 @@
-<?php
-
+<?php namespace ProcessWire;
 /**
  * Inputfield 'select file' provides a HTML select to select a file or a folder
  * from disk. Per Inputfield you can set a folder to list from.
  *
- * ©2015 Martijn Geerts
+ * ©2019 Martijn Geerts
  *
- * ProcessWire 2.x
+ * ProcessWire 3.x
  * Copyright (C) 2010 by Ryan Cramer
  * Licensed under GNU/GPL v2, see LICENSE.TXT
  *
@@ -16,8 +15,6 @@
  */
 class InputfieldSelectFile extends InputfieldText {
 
-
-
     /**
      * Return an array of module information
      *
@@ -25,16 +22,14 @@ class InputfieldSelectFile extends InputfieldText {
      */
     public static function getModuleInfo() {
         return array(
-            'title' => 'Inputfield select file',
-            'version' => 102,
+            'title' => 'Select File',
+            'version' => 103,
             'summary' => __('Inputfield to select a file or a folder.'),
             'author' => 'Martijn Geerts',
             'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
             'requires' => 'FieldtypeSelectFile',
             );
     }
-
-
 
     /**
      * Return the completed output of Inputfield select file
@@ -46,6 +41,7 @@ class InputfieldSelectFile extends InputfieldText {
 
         $array = array();
         $folder = $this->config->paths->templates . trim(trim($this->folderPath), '/') . "/";
+        $phpFileDescription = false;
 
         if(!is_dir($folder)) {
             $this->error($this->_("Path to files is invalid"));
@@ -64,6 +60,14 @@ class InputfieldSelectFile extends InputfieldText {
                     $label = implode('.', $exploded);
                 } else {
                     $label = $entry;
+                }
+                // pull "Description" comment from php files if it exists (inspired by WordPress "Template Name" comment)
+                if( !$this->fileDesc && pathinfo($entry)['extension']=='php' ) {
+                    $phpFileData = implode( '', file( $folder . $entry ) );
+                    if ( preg_match( '|Description:(.*)$|mi', $phpFileData, $desc ) ) {
+                        $phpFileDescription = trim( preg_replace( '/\s*(?:\*\/|\?>).*/', '', $desc[1] ) );
+                        $label .= " ($phpFileDescription)";
+                    }
                 }
 
                 $selected = $entry == $this->value ? " selected" : '';
