@@ -4,9 +4,9 @@
  * Fieldtype 'select file' stores a file/folder name selected in the associated
  * Inputfield.
  *
- * ©2015 Martijn Geerts
+ * ©2019 Martijn Geerts
  *
- * ProcessWire 2.x
+ * ProcessWire 3.x
  * Copyright (C) 2010 by Ryan Cramer
  * Licensed under GNU/GPL v2, see LICENSE.TXT
  *
@@ -17,184 +17,182 @@
 
 class FieldtypeSelectFile extends FieldtypeText {
 
+	/**
+	 * Return an array of module information
+	 *
+	 * @return array
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => __('Select File'),
+			'version' => 105,
+			'summary' => __('Fieldtype that stores a file or folder.'),
+			'author' => 'Martijn Geerts',
+			'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
+			'installs' => 'InputfieldSelectFile',
+		);
+	}
 
+	/**
+	 * This method is called when all system classes are loaded and ready for API usage
+	 *
+	 */
+	public function init() {
+		parent::init();
+		$this->allowTextFormatters(false);
+		$this->addHookBefore('Page::loaded', $this, 'changePageTemplate');
+	}
 
-    /**
-     * Return an array of module information
-     *
-     * @return array
-     */
-    public static function getModuleInfo() {
-        return array(
-            'title' => __('Fieldtype select file'),
-            'version' => 104,
-            'summary' => __('Fieldtype that stores a file or folder.'),
-            'author' => 'Martijn Geerts',
-            'href' => 'https://processwire.com/talk/topic/6377-fieldtypeselectfile-inputfieldselectfile/',
-            'installs' => 'InputfieldSelectFile',
-            );
-    }
+	/**
+	 * Change the page template to render
+	 *
+	 */
+	public function changePageTemplate(HookEvent $event) {
+		// Page before loaded
+		$page = $event->object;
+		// Inputfield object
+		$inputfield = $page->fields->get('type=FieldtypeSelectFile');
+		// Is not of type FieldtypeSelectFile
+		if ($inputfield === NULL) return;
+		// If change page template is not set in the Inputfield config
+		if (!$inputfield->template) return;
+		$value = trim($page->get($inputfield->name));
+		// If no value return
+		if (!$value) return;
+		$path = $this->config->paths->templates;
+		$folder = ltrim($inputfield->folderPath, '/') . '/';
+		$filename = $path . $folder . $value;
+		if (!is_file($filename)) return;
+		$page->template->set('filename', $filename);
+	}
 
+	/**
+	 * Sanitize value for storage
+	 *
+	 */
+	public function sanitizeValue(Page $page, Field $field, $value) {
+		$file = $this->config->paths->templates . trim(trim($field->folderPath, '/')) . '/' . $value;
+		if(is_file($file) || is_dir($file)) return $value;
+		return '';
+	}
 
+	/**
+	 * Return new instance of the Inputfield associated with this Fieldtype
+	 *
+	 * @param Page $page
+	 * @param Field $field
+	 * @return Inputfield
+	 *
+	 */
+	public function getInputfield(Page $page, Field $field) {
+		$inputfield = $this->modules->get('InputfieldSelectFile');
+		$inputfield->set('folderPath', $field->folderPath);
+		$inputfield->set('fileExt', $field->fileExt);
+		$inputfield->set('fileDesc', $field->fileDesc);
+		$inputfield->set('hideFiles', $field->hideFiles);
+		$inputfield->set('hideFolders', $field->hideFolders);
+		$inputfield->set('sort', $field->sort);
+		$inputfield->set('template', $field->template);
+		return $inputfield;
+	}
 
-    /**
-     * This method is called when all system classes are loaded and ready for API usage
-     *
-     */
-    public function init() {
-        parent::init();
-        $this->allowTextFormatters(false);
-        $this->addHookBefore('Page::loaded', $this, 'changePageTemplate');
-    }
+	/**
+	 * Get the inputfield used for configuration of this Fieldtype.
+	 *
+	 * @param Field $field
+	 * @return InputfieldWrapper
+	 *
+	 */
+	public function ___getConfigInputfields(Field $field) {
+		$error = false;
+		if ($field->folderPath) {
+			$folder = $this->config->paths->templates . ltrim($field->folderPath, '/');
+			if (!is_dir($folder)) {
+				$path = $this->config->urls->templates . ltrim($field->folderPath, '/');
+				$error = sprintf($this->_("Folder %s doesn't exist."), $path);
+			}
+		}
 
+		$inputfields = parent::___getConfigInputfields($field);
 
+		$f = $this->modules->get('InputfieldText');
+		$f->attr('name', 'folderPath');
+		$f->label = $this->_("The folder containing the files and/or folders.");
+		$f->attr('value', $field->folderPath);
+		$f->description =
+			sprintf($this->_('A relative path relative to the **%s** folder.'), $this->config->urls->templates) .
+			' ' .
+			sprintf($this->_('Leave blank for the **%s** folder.'), $this->config->urls->templates);
+		$f->notes =
+			$this->_("When the files are located in /site/templates/scripts/, type: scripts/");
+		$f->getErrors(true);
+		if ($error) $f->error($error);
+		$inputfields->add($f);
 
-    /**
-     * Change the page template to render
-     *
-     */
-    public function changePageTemplate(HookEvent $event) {
-        // Page before loaded
-        $page = $event->object;
-        // Inputfield object
-        $inputfield = $page->fields->get('type=FieldtypeSelectFile');
-        // Is not of type FieldtypeSelectFile
-        if ($inputfield === NULL) return;
-        // If change page template is not set in the Inputfield config
-        if (!$inputfield->template) return;
-        $value = trim($page->get($inputfield->name));
-        // If no value return
-        if (!$value) return;
-        $path = $this->config->paths->templates;
-        $folder = ltrim($inputfield->folderPath, '/') . '/';
-        $filename = $path . $folder . $value;
-        if (!is_file($filename)) return;
-        $page->template->set('filename', $filename);
-    }
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'fileExt');
+		$f->label = $this->_("Hide File Extension");
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->columnWidth = 20;
+		$f->attr('value', $field->fileExt);
+		$inputfields->add($f);
 
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'fileDesc');
+		$f->label = $this->_("Hide PHP File Description");
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->columnWidth = 20;
+		$f->attr('value', $field->fileDesc);
+		$inputfields->add($f);
 
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'hideFiles');
+		$f->label = $this->_("Hide Files");
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->columnWidth = 20;
+		$f->attr('value', $field->hideFiles);
+		$inputfields->add($f);
 
-    /**
-     * Sanitize value for storage
-     *
-     */
-    public function sanitizeValue(Page $page, Field $field, $value) {
-        $file = $this->config->paths->templates . trim(trim($field->folderPath, '/')) . '/' . $value;
-        if(is_file($file) || is_dir($file)) return $value;
-        return '';
-    }
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'hideFolders');
+		$f->label = $this->_("Hide Folders");
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->columnWidth = 20;
+		$f->attr('value', $field->hideFolders);
+		$inputfields->add($f);
 
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'sort');
+		$f->label = $this->_("Natural Sort (Select options)");
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->columnWidth = 20;
+		$f->attr('value', $field->sort);
+		$inputfields->add($f);
 
+		$f = $this->modules->get('InputfieldCheckbox');
+		$f->attr('name', 'template');
+		$f->label = $this->_('Change Page Template');
+		$f->label2 = $this->_('Use selected file as template');
+		$f->description =
+			$this->_('Just before the **Page::loaded** event the selected file is set as template file for the page.') .
+			' ' .
+			$this->_('This setting can only be applied once per a page and folders are exluded from the select inputfield.');
+		$f->attr('autocheck', 1);
+		$f->attr('uncheckedValue', 0);
+		$f->attr('checkedValue', 1);
+		$f->attr('value', $field->template);
+		$inputfields->add($f);
 
-    /**
-     * Return new instance of the Inputfield associated with this Fieldtype
-     *
-     * @param Page $page
-     * @param Field $field
-     * @return Inputfield
-     *
-     */
-    public function getInputfield(Page $page, Field $field) {
-        $inputfield = $this->modules->get('InputfieldSelectFile');
-        $inputfield->set('folderPath', $field->folderPath);
-        $inputfield->set('fileExt', $field->fileExt);
-        $inputfield->set('hideFiles', $field->hideFiles);
-        $inputfield->set('hideFolders', $field->hideFolders);
-        $inputfield->set('sort', $field->sort);
-        $inputfield->set('template', $field->template);
-        return $inputfield;
-    }
-
-
-
-    /**
-     * Get the inputfield used for configuration of this Fieldtype.
-     *
-     * @param Field $field
-     * @return InputfieldWrapper
-     *
-     */
-    public function ___getConfigInputfields(Field $field) {
-
-        $error = false;
-        if ($field->folderPath) {
-            $folder = $this->config->paths->templates . ltrim($field->folderPath, '/');
-            if (!is_dir($folder)) {
-                $path = $this->config->urls->templates . ltrim($field->folderPath, '/');
-                $error = sprintf($this->_("Folder %s doesn't exist."), $path);
-            }
-        }
-
-        $inputfields = parent::___getConfigInputfields($field);
-
-        $f = $this->modules->get('InputfieldText');
-        $f->attr('name', 'folderPath');
-        $f->label = $this->_("The folder containing the files and/or folders.");
-        $f->attr('value', $field->folderPath);
-        $f->description =
-            sprintf($this->_('A relative path relative to the **%s** folder.'), $this->config->urls->templates) .
-            ' ' .
-            sprintf($this->_('Leave blank for the **%s** folder.'), $this->config->urls->templates);
-        $f->notes =
-            $this->_("When the files are located in /site/templates/scripts/, type: scripts/");
-        $f->getErrors(true);
-        if ($error) $f->error($error);
-        $inputfields->add($f);
-
-        $f = $this->modules->get('InputfieldCheckbox');
-        $f->attr('name', 'fileExt');
-        $f->label = $this->_("Hide File Extension");
-        $f->attr('autocheck', 1);
-        $f->attr('uncheckedValue', 0);
-        $f->attr('checkedValue', 1);
-        $f->columnWidth = 25;
-        $f->attr('value', $field->fileExt);
-        $inputfields->add($f);
-
-        $f = $this->modules->get('InputfieldCheckbox');
-        $f->attr('name', 'hideFiles');
-        $f->label = $this->_("Hide Files");
-        $f->attr('autocheck', 1);
-        $f->attr('uncheckedValue', 0);
-        $f->attr('checkedValue', 1);
-        $f->columnWidth = 25;
-        $f->attr('value', $field->hideFiles);
-        $inputfields->add($f);
-
-        $f = $this->modules->get('InputfieldCheckbox');
-        $f->attr('name', 'hideFolders');
-        $f->label = $this->_("Hide Folders");
-        $f->attr('autocheck', 1);
-        $f->attr('uncheckedValue', 0);
-        $f->attr('checkedValue', 1);
-        $f->columnWidth = 25;
-        $f->attr('value', $field->hideFolders);
-        $inputfields->add($f);
-
-        $f = $this->modules->get('InputfieldCheckbox');
-        $f->attr('name', 'sort');
-        $f->label = $this->_("Natural Sort (Select options)");
-        $f->attr('autocheck', 1);
-        $f->attr('uncheckedValue', 0);
-        $f->attr('checkedValue', 1);
-        $f->columnWidth = 25;
-        $f->attr('value', $field->sort);
-        $inputfields->add($f);
-
-        $f = $this->modules->get('InputfieldCheckbox');
-        $f->attr('name', 'template');
-        $f->label = $this->_('Change Page Template');
-        $f->label2 = $this->_('Use selected file as template');
-        $f->description =
-            $this->_('Just before the **Page::loaded** event the selected file is set as template file for the page.') .
-            ' ' .
-            $this->_('This setting can only be applied once per a page and folders are exluded from the select inputfield.');
-        $f->attr('autocheck', 1);
-        $f->attr('uncheckedValue', 0);
-        $f->attr('checkedValue', 1);
-        $f->attr('value', $field->template);
-        $inputfields->add($f);
-
-        return $inputfields;
-    }
+		return $inputfields;
+	}
 }
